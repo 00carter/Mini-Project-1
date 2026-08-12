@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "superstore"
+version = "0.1.0"
+description = "Cleaning and analysis utilities for the Superstore mini-project"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas",
+    "numpy",
+]
