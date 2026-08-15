@@ -212,7 +212,7 @@ class Visualization():
 
     def show_dashboard_1(self):
         try:
-            fig, axes = plt.subplots(2, 3, figsize=(26, 10))
+            fig, axes = plt.subplots(2, 3, figsize=(26, 12))
             fig.suptitle("Superstore Performance Dashboard", fontsize=18, fontweight="bold")
             fig.set_facecolor("white")
 
@@ -233,7 +233,7 @@ class Visualization():
 
     def show_dashboard_2(self):
         try:
-            fig, axes = plt.subplots(2, 2, figsize=(20, 12))
+            fig, axes = plt.subplots(2, 2, figsize=(26, 12))
             fig.suptitle("Sales Distribution & Correlation Overview", fontsize=18, fontweight="bold")
             fig.set_facecolor("white")
 
