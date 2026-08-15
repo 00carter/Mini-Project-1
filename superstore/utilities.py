@@ -1,6 +1,9 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+
+sns.set_theme() 
 
 class Cleaner():
     def __init__(self, df):
@@ -76,21 +79,29 @@ class FeatureEngineering():
             print(f"Something went wrong: {e}")
 
 class Visualization():
+
+    palette = sns.color_palette("rocket_r", n_colors=10)
+    
     def __init__(self, df):
         self.df = df
 
-    def _plot_top_products(self):
-        highest_selling_products = (
-            self.df.groupby("Product Name", as_index=False)["Sales"]
+    def plot_most_profitable_products_barplot(self, axes=None):
+        most_profitable_products = (
+            self.df.groupby("Product Name", as_index=False)["Profit"]
             .sum()
-            .sort_values("Sales", ascending=False)
+            .sort_values("Profit", ascending=False)
             .head(10)
         )
-        sns.barplot(data=highest_selling_products, x="Sales", y="Product Name", orient="h")
-        plt.title("Top 10 Selling Products")
-        plt.show()
+        if axes is not None:
+            sns.barplot(data=most_profitable_products, x="Profit", y="Product Name",
+                        orient="h", hue="Product Name", ax=axes[0][0])
+            axes[0][0].set_title("Most Profitable Products")
+        else:
+            sns.barplot(data=most_profitable_products, x="Profit", y="Product Name", orient="h")
+            plt.title("Most Profitable Products")
+            plt.show()
 
-    def _plot_top_cities(self):
+    def plot_highest_performing_cities_barplot(self, axes=None):
         highest_selling_cities = (
             self.df.groupby("City")["Sales"]
             .sum()
@@ -98,69 +109,150 @@ class Visualization():
             .head(10)
             .reset_index()
         )
-        sns.barplot(data=highest_selling_cities, x="Sales", y="City", orient="h")
-        plt.title("Top 10 Selling Cities")
-        plt.show()
+        if axes is not None:
+            sns.barplot(data=highest_selling_cities, x="Sales", y="City",
+                        orient="h", hue="City", ax=axes[0][1])
+            axes[0][1].set_title("Highest Selling Cities")
+        else:
+            sns.barplot(data=highest_selling_cities, x="Sales", y="City", orient="h")
+            plt.title("Highest Selling Cities")
+            plt.show()
 
-    def _plot_sales_trend(self):
+    def plot_sales_overtime_lineplot(self, axes=None):
         sales_change = (
             self.df.resample('ME', on='Order Date')['Sales']
             .sum()
             .reset_index()
         )
-        sns.lineplot(data=sales_change, x="Order Date", y="Sales")
-        plt.title("Sales Over Time")
-        plt.show()
+        if axes is not None:
+            sns.lineplot(data=sales_change, x="Order Date", y="Sales", ax=axes[0][2])
+            axes[0][2].set_title("Sales Trend Over Time")
+        else:
+            sns.lineplot(data=sales_change, x="Order Date", y="Sales")
+            plt.title("Sales Trend Over Time")
+            plt.show()
 
-    def _plot_top_customers(self):
+    def plot_shipping_insights_pie(self, axes=None):
+        ship_mode_counts = self.df["Ship Mode"].value_counts().reset_index()
+        if axes is not None:
+            axes[1][0].pie(ship_mode_counts["count"], labels=ship_mode_counts["Ship Mode"], autopct="%1.1f%%")
+            axes[1][0].set_title("Order Count by Ship Mode")
+        else:
+            plt.pie(ship_mode_counts["count"], labels=ship_mode_counts["Ship Mode"], autopct="%1.1f%%")
+            plt.title("Order Count by Ship Mode")
+            plt.show()
+
+    def plot_shipping_insights_boxplot(self, axes=None):
+        if axes is not None:
+            sns.boxplot(data=self.df, x="Ship Mode", y="Shipping Duration", hue="Ship Mode",
+                        ax=axes[1][1],
+                        order=["Standard Class", "Second Class", "First Class", "Same Day"])
+            axes[1][1].set_title("Shipping Duration by Ship Mode")
+        else:
+            sns.boxplot(data=self.df, x="Ship Mode", y="Shipping Duration",
+                        order=["Standard Class", "Second Class", "First Class", "Same Day"])
+            plt.title("Shipping Duration by Ship Mode")
+            plt.show()
+            
+    def plot_top_customers(self, axes=None):
         highest_selling_customers = (
             self.df.groupby(["Customer ID", "Customer Name"])["Sales"].sum()
             .sort_values(ascending=False)
             .head(10)
             .reset_index()
         )
-        sns.barplot(data=highest_selling_customers, x="Sales", y="Customer Name", orient="h")
-        plt.title("Top 10 Purchasing Customers")
-        plt.show()
+        if axes is not None:
+            sns.barplot(data=highest_selling_customers, x="Sales", y="Customer Name",
+                        orient="h", hue="Customer Name", ax=axes[1][2])
+            axes[1][2].set_title("Highest Purchasing Customers")
+        else:
+            sns.barplot(data=highest_selling_customers, x="Sales", y="Customer Name", orient="h")
+            plt.title("Highest Purchasing Customers")
+            plt.show()
 
-    def _plot_sales_distribution(self):
-        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-        sns.histplot(data=self.df, x="Sales", kde=True, ax=axes[0])
-        axes[0].set_title("Sales Distribution")
-        sns.boxplot(data=self.df, x="Sales", ax=axes[1])
-        axes[1].set_title("Sales Spread & Outliers")
-        plt.tight_layout()
-        plt.show()
+    def plot_sales_distribution_violin(self, axes=None):
+        if axes is not None:
+            sns.violinplot(data=self.df, x="Sales", ax=axes[0][0], color="salmon")
+            axes[0][0].set_title("Sales Distribution (Violin)")
+            axes[0][0].set_xlabel("Sales")
+        else:
+            sns.violinplot(data=self.df, x="Sales", color="salmon")
+            plt.title("Sales Distribution (Violin)")
+            plt.xlabel("Sales")
+            plt.show()
 
-    def _plot_shipping_duration(self):
-        self.df["Shipping Duration Days"] = self.df["Shipping Duration"].dt.days
-        sns.boxplot(data=self.df, x="Ship Mode", y="Shipping Duration Days")
-        plt.title("Shipping Duration by Ship Mode")
-        plt.show()
+    def plot_sales_distribution_box(self, axes=None):
+        if axes is not None:
+            sns.boxplot(data=self.df, x="Sales", ax=axes[0][1], color="salmon")
+            axes[0][1].set_title("Sales Spread & Outliers")
+            axes[0][1].set_xlabel("Sales")
+        else:
+            sns.boxplot(data=self.df, x="Sales", color="salmon")
+            plt.title("Sales Spread & Outliers")
+            plt.show()
 
-    def _plot_shipping_mode(self):
-        ship_mode_counts = self.df["Ship Mode"].value_counts().reset_index()
-        sns.barplot(data=ship_mode_counts, x="count", y="Ship Mode")
-        plt.title("Order Count by Ship Mode")
-        plt.xlabel("Number of Orders")
-        plt.show()
+    def plot_quantity_discounts_correlation_scatterplot(self, axes=None):
+        if axes is not None:
+            sns.scatterplot(data=self.df, x="Discount", y="Quantity", ax=axes[1][0])
+            axes[1][0].set_title("Quantity vs. Discount")
+        else:
+            sns.scatterplot(data=self.df, x="Discount", y="Quantity")
+            plt.title("Quantity vs. Discount")
+            plt.show()
 
-    def _plot_quantity_discount_correlation(self):
-        sns.scatterplot(data=self.df, x="Discount", y="Quantity")
-        plt.title("Quantity vs. Discount")
-        plt.show()
+    def plot_correlation_heatmap(self, axes=None):
+        if axes is not None:
+            sns.heatmap(self.df[["Quantity", "Discount", "Sales", "Profit"]].corr(), annot=True, cmap="coolwarm", ax=axes[1][1])
+            axes[1][1].set_title("Correlation Matrix")
+        else:
+            sns.heatmap(self.df[["Quantity", "Discount", "Sales", "Profit"]].corr(), annot=True, cmap="coolwarm")
+            plt.title("Correlation Matrix")
+            plt.show()
 
-    def show_all(self):
+
+    def show_dashboard_1(self):
         try:
-            self._plot_top_products()
-            self._plot_top_cities()
-            self._plot_sales_trend()
-            self._plot_top_customers()
-            self._plot_sales_distribution()
-            self._plot_shipping_duration()
-            self._plot_shipping_mode()
-            self._plot_quantity_discount_correlation()
+            fig, axes = plt.subplots(2, 3, figsize=(26, 10))
+            fig.suptitle("Superstore Performance Dashboard", fontsize=18, fontweight="bold")
+            fig.set_facecolor("white")
+
+            self.plot_most_profitable_products_barplot(axes=axes)
+            self.plot_highest_performing_cities_barplot(axes=axes)
+            self.plot_sales_overtime_lineplot(axes=axes)
+            self.plot_shipping_insights_pie(axes=axes)
+            self.plot_shipping_insights_boxplot(axes=axes)
+            self.plot_top_customers(axes=axes)
+
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            plt.show()
+
         except KeyError:
             print("Column is missing")
         except Exception as e:
             print(f"Something went wrong: {e}")
+
+    def show_dashboard_2(self):
+        try:
+            fig, axes = plt.subplots(2, 2, figsize=(20, 12))
+            fig.suptitle("Sales Distribution & Correlation Overview", fontsize=18, fontweight="bold")
+            fig.set_facecolor("white")
+
+            self.plot_sales_distribution_violin(axes=axes)
+            self.plot_sales_distribution_box(axes=axes)
+            self.plot_quantity_discounts_correlation_scatterplot(axes=axes)
+            self.plot_correlation_heatmap(axes=axes)
+
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            plt.show()
+
+        except KeyError:
+            print("Column is missing")
+        except Exception as e:
+            print(f"Something went wrong: {e}")
+
+    def show_all(self, filename="superstore_dashboards.pdf"):
+        self.show_dashboard_1()
+        self.show_dashboard_2()
+        
+
+
