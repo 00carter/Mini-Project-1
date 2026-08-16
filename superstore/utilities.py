@@ -254,5 +254,94 @@ class Visualization():
         self.show_dashboard_1()
         self.show_dashboard_2()
         
+class Summary():
 
+    def __init__(self, df):
+        self.df = df
 
+    def calculate_total_sales(self):
+        try:
+            return round(float(self.df["Sales"].sum()), 2)
+        except KeyError:
+            print("Column 'Sales' is missing")
+        except Exception as e:
+            print(f"Something went wrong: {e}")
+
+    def calculate_total_profit(self):
+        try:
+            return round(float(self.df["Profit"].sum()), 2)
+        except KeyError:
+            print("Column 'Profit' is missing")
+        except Exception as e:
+            print(f"Something went wrong: {e}")
+
+    def calculate_average_order_value(self):
+        try:
+            aov = self.df.groupby(["Order ID"])["Sales"].sum().mean()
+            return round(float(aov), 2)
+        except KeyError:
+            print("Column 'Order ID' or 'Sales' is missing")
+        except Exception as e:
+            print(f"Something went wrong: {e}")
+
+    def calculate_average_shipping_duration(self):
+        try:
+            average_shipping_duration = self.df["Shipping Duration"].dt.days.mean()
+            return round(float(average_shipping_duration))
+        except KeyError:
+            print("Column 'Shipping Duration' is missing")
+        except Exception as e:
+            print(f"Something went wrong: {e}")
+
+    def calculate_top_category(self):
+        try:
+            tc = self.df.groupby(["Category"])["Sales"].sum()
+            return tc.idxmax()
+        except KeyError:
+            print("Column 'Category' or 'Sales' is missing")
+        except Exception as e:
+            print(f"Something went wrong: {e}")
+
+    def calculate_top_region(self):
+        try:
+            tr = self.df.groupby(["Region"])["Sales"].sum()
+            return tr.idxmax()
+        except KeyError:
+            print("Column 'Region' or 'Sales' is missing")
+        except Exception as e:
+            print(f"Something went wrong: {e}")
+
+    def calculate_average_discount(self):
+        try:
+            ad = self.df["Discount"].mean()
+            return round(float(ad), 2)
+        except KeyError:
+            print("Column 'Discount' is missing")
+        except Exception as e:
+            print(f"Something went wrong: {e}")
+
+    def __str__(self):
+        return f"""
+Summary:
+
+Total Sales
+${self.calculate_total_sales():,.2f}
+
+Total Profit
+${self.calculate_total_profit():,.2f}
+
+Average Order Value
+${self.calculate_average_order_value():,.2f}
+
+Average Shipping Duration
+{self.calculate_average_shipping_duration()} days
+
+Top Category (by Sales)
+{self.calculate_top_category()}
+
+Top Region (by Sales)
+{self.calculate_top_region()}
+
+Average Discount
+{self.calculate_average_discount() * 100}%
+        """
