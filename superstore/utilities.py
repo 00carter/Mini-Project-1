@@ -210,7 +210,7 @@ class Visualization():
             plt.show()
 
 
-    def show_dashboard_1(self):
+    def show_dashboard_1(self, show=True):
         try:
             fig, axes = plt.subplots(2, 3, figsize=(26, 12))
             fig.suptitle("Superstore Performance Dashboard", fontsize=18, fontweight="bold")
@@ -224,14 +224,16 @@ class Visualization():
             self.plot_top_customers(axes=axes)
 
             plt.tight_layout(rect=[0, 0, 1, 0.96])
-            plt.show()
+
+            if show:
+                    plt.show()
 
         except KeyError:
             print("Column is missing")
         except Exception as e:
             print(f"Something went wrong: {e}")
 
-    def show_dashboard_2(self):
+    def show_dashboard_2(self, show=True):
         try:
             fig, axes = plt.subplots(2, 2, figsize=(26, 12))
             fig.suptitle("Sales Distribution & Correlation Overview", fontsize=18, fontweight="bold")
@@ -243,7 +245,9 @@ class Visualization():
             self.plot_correlation_heatmap(axes=axes)
 
             plt.tight_layout(rect=[0, 0, 1, 0.96])
-            plt.show()
+
+            if show:
+                plt.show()
 
         except KeyError:
             print("Column is missing")
@@ -320,6 +324,12 @@ class Summary():
         except Exception as e:
             print(f"Something went wrong: {e}")
 
+    def _summary_as_figure(self):
+        fig, ax = plt.subplots(figsize=(8.5, 11))
+        ax.axis("off")
+        ax.text(0.05, 0.95, str(self), fontsize=12, va="top", family="monospace")
+        return fig
+
     def __str__(self):
         return f"""
 Summary:
@@ -345,3 +355,25 @@ Top Region (by Sales)
 Average Discount
 {self.calculate_average_discount() * 100}%
         """
+
+class Pdf():
+
+    def __init__(self, df):
+        self.df = df
+
+    def export_report(self, filename="exports/superstore_report.pdf"):
+        v = Visualization(self.df )
+        s = Summary(self.df )
+
+        with PdfPages(filename) as pdf:
+            fig1 = v.show_dashboard_1(show=False)
+            pdf.savefig(fig1)
+            plt.close(fig1)
+
+            fig2 = v.show_dashboard_2(show=False)
+            pdf.savefig(fig2)
+            plt.close(fig2)
+
+            fig3 = s._summary_as_figure()
+            pdf.savefig(fig3)
+            plt.close(fig3)
