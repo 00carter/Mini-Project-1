@@ -377,3 +377,22 @@ class Pdf():
             fig3 = s._summary_as_figure()
             pdf.savefig(fig3)
             plt.close(fig3)
+
+class Optimize():
+
+    def __init__(self, df):
+        self.df = df
+
+    def start_optimization(self):
+        self.df["Category"] = self.df["Category"].astype("category")
+        self.df["Sub-Category"] = self.df["Sub-Category"].astype("category")
+        self.df["Segment"] = self.df["Segment"].astype("category")
+        self.df["Region"] = self.df["Region"].astype("category")
+        self.df["Ship Mode"] = self.df["Ship Mode"].astype("category")
+        self.df["Discount"] = self.df["Discount"].astype("float32")
+        self.df["Profit"] = self.df["Profit"].astype("float32")
+        self.df["Quantity"] = self.df["Quantity"].astype("int8")
+
+        return self.df
+
+
